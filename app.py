@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+# from flask_login import UserMixin
 from flask_cors import CORS
 
 import os
@@ -11,6 +12,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "ap
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 CORS(app)
+
+
 
 
 class User(db.Model):
@@ -27,7 +30,7 @@ class User(db.Model):
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ("id", "username", "password")
+        fields = ("username", "high_score")
 
 
 user_schema = UserSchema()
@@ -48,6 +51,34 @@ def new_user():
     db.session.commit()
 
     return jsonify("New user added")
+
+
+
+
+
+@app.route("/user/login/<username>", methods=["GET"])
+def user_login(username):
+    record = db.session.query(User).filter(User.username == username).first()
+    return jsonify(user_schema.dump(record))
+
+
+
+@app.route("/user/update/<username>", methods=["PUT"])
+def update_password(username):
+    if request.content_type != "application/json":
+        return jsonify("JSON PLS")
+
+    put_data = request.get_json()
+    password = put_data.get("password")
+
+    record = db.session.query(User).filter(User.username == username).first()
+
+    if password != None:
+        record.password = password
+
+    db.session.commit()
+
+    return jsonify("Password updated successfully")
 
 
 
