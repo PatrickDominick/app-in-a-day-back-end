@@ -12,7 +12,29 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 CORS(app)
 
+class User(db.model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, nullable=False, unique=True)
+    password = db.Column(db.String, nullable=False)
 
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+
+class UserSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "username")
+
+class Tokens(db.model):
+    token_name = db.Column(db.String, nullable=False, unique=True)
+    base_value = db.Column(db.Integer)
+    token_rule = db.Column(db.String)
+
+    def __init__(token_name, base_value, token_rule):
+        self.token_name = token_name
+        self.base_value = base_value
+        self.token_rule = token_rule
 
 if __name__ == "__main__":
     app.run(debug=True)
